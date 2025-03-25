@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.1.0](https://github.com/nguyenvanduocit/rag-kit/compare/v1.0.0...v1.1.0) (2025-03-25)
+
+
+### Features
+
+* Add initial project structure and configuration ([ee473c8](https://github.com/nguyenvanduocit/rag-kit/commit/ee473c8196f7764b1acf3d8cd5e7ac76aa499a70))
+
 ## 1.0.0 (2025-02-20)
 
 
