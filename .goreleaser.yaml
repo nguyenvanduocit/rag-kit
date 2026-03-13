@@ -1,0 +1,81 @@
+version: 2
+
+before:
+  hooks:
+    - go mod tidy
+
+builds:
+  - id: rag-kit
+    main: .
+    binary: rag-kit
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+  - id: rag-cli
+    main: ./cmd/rag-cli
+    binary: rag-cli
+    env:
+      - CGO_ENABLED=0
+    goos:
+      - linux
+      - darwin
+      - windows
+    goarch:
+      - amd64
+      - arm64
+    ldflags:
+      - -s -w -X main.version={{.Version}}
+
+archives:
+  - name_template: "{{ .ProjectName }}_{{ .Os }}_{{ .Arch }}"
+    formats:
+      - tar.gz
+    format_overrides:
+      - goos: windows
+        formats:
+          - zip
+
+checksum:
+  name_template: "checksums.txt"
+
+brews:
+  - name: rag-kit
+    ids:
+      - rag-kit
+    repository:
+      owner: nguyenvanduocit
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: "https://github.com/nguyenvanduocit/rag-kit"
+    description: "rag-kit - MCP server"
+    install: |
+      bin.install "rag-kit"
+
+  - name: rag-cli
+    ids:
+      - rag-cli
+    repository:
+      owner: nguyenvanduocit
+      name: homebrew-tap
+      token: "{{ .Env.HOMEBREW_TAP_GITHUB_TOKEN }}"
+    homepage: "https://github.com/nguyenvanduocit/rag-kit"
+    description: "rag-cli - CLI tool"
+    install: |
+      bin.install "rag-cli"
+
+changelog:
+  sort: asc
+  filters:
+    exclude:
+      - "^docs:"
+      - "^test:"
+      - "^chore:"
