@@ -96,7 +96,7 @@ In addition to the MCP server, `rag-kit` ships a standalone CLI binary (`rag-cli
 ```bash
 just install-cli
 # or
-go install github.com/nguyenvanduocit/rag-kit/cmd/cli@latest
+go install github.com/nguyenvanduocit/rag-kit/cmd/rag-cli@latest
 ```
 
 ### Quick Start
