@@ -17,7 +17,7 @@ import (
 	"github.com/sashabaranov/go-openai"
 )
 
-var qdrantClient = sync.OnceValue[*qdrant.Client](func() *qdrant.Client {
+var qdrantClient = sync.OnceValue(func() *qdrant.Client {
 
 	host := os.Getenv("QDRANT_HOST")
 	port := os.Getenv("QDRANT_PORT")
@@ -50,40 +50,34 @@ var qdrantClient = sync.OnceValue[*qdrant.Client](func() *qdrant.Client {
 })
 
 func RegisterRagTools(s *server.MCPServer) {
-	indexContentTool := mcp.NewTool("RAG_memory_index_content",
+	indexContentTool := mcp.NewTool("memory_index_content",
 		mcp.WithDescription("Index a content into memory, can be inserted or updated"),
 		mcp.WithString("collection", mcp.Required(), mcp.Description("Memory collection name")),
 		mcp.WithString("filePath", mcp.Required(), mcp.Description("content file path")),
 		mcp.WithString("payload", mcp.Required(), mcp.Description("Plain text payload")),
 	)
-
-	indexFileTool := mcp.NewTool("RAG_memory_index_file",
-		mcp.WithDescription("Index a local file into memory"),
-		mcp.WithString("collection", mcp.Required(), mcp.Description("Memory collection name")),
-		mcp.WithString("filePath", mcp.Required(), mcp.Description("Path to the local file to be indexed")),
-	)
-
-	createCollectionTool := mcp.NewTool("RAG_memory_create_collection",
+	
+	createCollectionTool := mcp.NewTool("memory_create_collection",
 		mcp.WithDescription("Create a new vector collection in memory"),
 		mcp.WithString("collection", mcp.Required(), mcp.Description("Memory collection name")),
 	)
 
-	deleteCollectionTool := mcp.NewTool("RAG_memory_delete_collection",
+	deleteCollectionTool := mcp.NewTool("memory_delete_collection",
 		mcp.WithDescription("Delete a vector collection in memory"),
 		mcp.WithString("collection", mcp.Required(), mcp.Description("Memory collection name")),
 	)
 
-	listCollectionTool := mcp.NewTool("RAG_memory_list_collections",
+	listCollectionTool := mcp.NewTool("memory_list_collections",
 		mcp.WithDescription("List all vector collections in memory"),
 	)
 
-	searchTool := mcp.NewTool("RAG_memory_search",
+	searchTool := mcp.NewTool("memory_search",
 		mcp.WithDescription("Search for memory in a collection based on a query"),
 		mcp.WithString("collection", mcp.Required(), mcp.Description("Memory collection name")),
 		mcp.WithString("query", mcp.Required(), mcp.Description("search query, should be a keyword")),
 	)
 
-	deleteIndexByFilePathTool := mcp.NewTool("RAG_memory_delete_index_by_filepath",
+	deleteIndexByFilePathTool := mcp.NewTool("memory_delete_index_by_filepath",
 		mcp.WithDescription("Delete a vector index by filePath"),
 		mcp.WithString("collection", mcp.Required(), mcp.Description("Memory collection name")),
 		mcp.WithString("filePath", mcp.Required(), mcp.Description("Path to the local file to be deleted")),
@@ -94,14 +88,13 @@ func RegisterRagTools(s *server.MCPServer) {
 	s.AddTool(listCollectionTool, util.ErrorGuard(listCollectionHandler))
 	s.AddTool(indexContentTool, util.ErrorGuard(indexContentHandler))
 	s.AddTool(searchTool, util.ErrorGuard(vectorSearchHandler))
-	s.AddTool(indexFileTool, util.ErrorGuard(indexFileHandler))
 	s.AddTool(deleteIndexByFilePathTool, util.ErrorGuard(deleteIndexByFilePathHandler))
 }
 
-func deleteIndexByFilePathHandler(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-	collection := arguments["collection"].(string)
-	filePath := arguments["filePath"].(string)
-	ctx := context.Background()
+func deleteIndexByFilePathHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	collection := request.Params.Arguments["collection"].(string)
+	filePath := request.Params.Arguments["filePath"].(string)
+
 
 	// Delete points by IDs using PointSelector
 	pointsSelector := &qdrant.PointsSelector{
@@ -137,29 +130,7 @@ func deleteIndexByFilePathHandler(arguments map[string]interface{}) (*mcp.CallTo
 	return mcp.NewToolResultText(result), nil
 }
 
-func indexFileHandler(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-	collection := arguments["collection"].(string)
-	filePath := arguments["filePath"].(string)
-
-	// Read the file content
-	content, err := os.ReadFile(filePath)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read file: %v", err)
-	}
-
-	// Prepare arguments for vectorUpsertHandler
-	upsertArgs := map[string]interface{}{
-		"collection": collection,
-		"filePath":   filePath,
-		"payload":    string(content), // Convert content to string
-	}
-
-	// Call vectorUpsertHandler
-	return indexContentHandler(upsertArgs)
-}
-
-func listCollectionHandler(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-	ctx := context.Background()
+func listCollectionHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
 	collections, err := qdrantClient().ListCollections(ctx)
 	if err != nil {
 		return nil, fmt.Errorf("failed to list collections: %w", err)
@@ -167,9 +138,8 @@ func listCollectionHandler(arguments map[string]interface{}) (*mcp.CallToolResul
 	return mcp.NewToolResultText(fmt.Sprintf("Collections: %v", collections)), nil
 }
 
-func createCollectionHandler(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-	collection := arguments["collection"].(string)
-	ctx := context.Background()
+func createCollectionHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	collection := request.Params.Arguments["collection"].(string)
 
 	// Check if collection already exists
 	collectionInfo, err := qdrantClient().GetCollectionInfo(ctx, collection)
@@ -197,9 +167,8 @@ func createCollectionHandler(arguments map[string]interface{}) (*mcp.CallToolRes
 	return mcp.NewToolResultText(result), nil
 }
 
-func deleteCollectionHandler(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-	collection := arguments["collection"].(string)
-	ctx := context.Background()
+func deleteCollectionHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	collection := request.Params.Arguments["collection"].(string)
 
 	// Check if collection exists
 	collectionInfo, err := qdrantClient().GetCollectionInfo(ctx, collection)
@@ -217,10 +186,10 @@ func deleteCollectionHandler(arguments map[string]interface{}) (*mcp.CallToolRes
 	return mcp.NewToolResultText(result), nil
 }
 
-func indexContentHandler(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-	collection := arguments["collection"].(string)
-	filePath := arguments["filePath"].(string)
-	payload := arguments["payload"].(string)
+func indexContentHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	collection := request.Params.Arguments["collection"].(string)
+	filePath := request.Params.Arguments["filePath"].(string)
+	payload := request.Params.Arguments["payload"].(string)
 
 	// Split content into chunks
 	chunks, err := splitIntoChunks(payload, filePath) // Implement chunking logic
@@ -253,7 +222,6 @@ func indexContentHandler(arguments map[string]interface{}) (*mcp.CallToolResult,
 		points = append(points, point)
 	}
 
-	ctx := context.Background()
 	waitUpsert := true
 
 	// Upsert all chunks
@@ -357,11 +325,11 @@ Please give a short succinct context to situate this chunk within the overall do
 	return fmt.Sprintf("Context: \n%s;\n\nChunk: \n%s", context, chunkText), nil
 }
 
-func vectorSearchHandler(arguments map[string]interface{}) (*mcp.CallToolResult, error) {
-	collection := arguments["collection"].(string)
-	query := arguments["query"].(string)
+func vectorSearchHandler(ctx context.Context, request mcp.CallToolRequest) (*mcp.CallToolResult, error) {
+	collection := request.Params.Arguments["collection"].(string)
+	query := request.Params.Arguments["query"].(string)
 	// Generate embedding for the query
-	resp, err := services.DefaultOpenAIClient().CreateEmbeddings(context.Background(), openai.EmbeddingRequest{
+	resp, err := services.DefaultOpenAIClient().CreateEmbeddings(ctx, openai.EmbeddingRequest{
 		Input:      []string{query},
 		Model:      openai.LargeEmbedding3,
 		Dimensions: 2048,

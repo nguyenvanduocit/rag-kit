@@ -87,3 +87,57 @@ Search for memory in a collection based on a query
 
 Delete a vector index by filePath
 
+## CLI Usage
+
+In addition to the MCP server, `rag-kit` ships a standalone CLI binary (`rag-cli`) for direct terminal use — no MCP client needed.
+
+### Installation
+
+```bash
+just install-cli
+# or
+go install github.com/nguyenvanduocit/rag-kit/cmd/cli@latest
+```
+
+### Quick Start
+
+```bash
+export OPENAI_API_KEY=your-openai-key
+export QDRANT_HOST=localhost
+export QDRANT_PORT=6334
+# or
+rag-cli --env .env <command> [flags]
+```
+
+### Commands
+
+| Command | Description |
+|---------|-------------|
+| `create-collection` | Create a Qdrant vector collection |
+| `delete-collection` | Delete a collection |
+| `list-collections` | List all collections |
+| `index-content` | Index content into a collection |
+| `delete-index` | Delete indexed content |
+| `search` | Semantic search in a collection |
+
+### Examples
+
+```bash
+# Create a collection
+rag-cli create-collection --name my-docs --size 1536
+
+# Index content
+rag-cli index-content --collection my-docs --content "Hello world" --source "doc-1"
+
+# Search
+rag-cli search --collection my-docs --query "greeting" --limit 5
+
+# JSON output
+rag-cli search --collection my-docs --query "hello" --output json | jq '.[].content'
+```
+
+### Flags
+
+Every command accepts:
+- `--env string` — Path to `.env` file
+- `--output string` — Output format: `text` (default) or `json`

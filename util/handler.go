@@ -1,6 +1,7 @@
 package util
 
 import (
+	"context"
 	"fmt"
 	"runtime"
 
@@ -15,7 +16,7 @@ func HandleError(handler server.ToolHandlerFunc) server.ToolHandlerFunc {
 }
 
 func ErrorGuard(handler server.ToolHandlerFunc) server.ToolHandlerFunc {
-	return func(arguments map[string]interface{}) (result *mcp.CallToolResult, err error) {
+	return func(ctx context.Context, request mcp.CallToolRequest) (result *mcp.CallToolResult, err error) {
 		defer func() {
 			if r := recover(); r != nil {
 				// Get stack trace
@@ -26,7 +27,7 @@ func ErrorGuard(handler server.ToolHandlerFunc) server.ToolHandlerFunc {
 				result = mcp.NewToolResultError(fmt.Sprintf("Panic: %v\nStack trace:\n%s", r, stackTrace))
 			}
 		}()
-		result, err = handler(arguments)
+		result, err = handler(ctx, request)
 		if err != nil {
 			return mcp.NewToolResultError(fmt.Sprintf("Error: %v", err)), nil
 		}
