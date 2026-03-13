@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.3](https://github.com/nguyenvanduocit/rag-kit/compare/v1.0.2...v1.0.3) (2026-03-13)
+
+
+### Bug Fixes
+
+* checkout tagged commit in goreleaser to fix tag mismatch ([68fc753](https://github.com/nguyenvanduocit/rag-kit/commit/68fc753da1c8100ad5a2501427e66913a36afc27))
+
 ## [1.0.2](https://github.com/nguyenvanduocit/rag-kit/compare/v1.0.1...v1.0.2) (2026-03-13)
 
 
