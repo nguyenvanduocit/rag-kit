@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.4](https://github.com/nguyenvanduocit/rag-kit/compare/v1.0.3...v1.0.4) (2026-03-13)
+
+
+### Bug Fixes
+
+* add explicit archive IDs for homebrew brew formula ([774d6f4](https://github.com/nguyenvanduocit/rag-kit/commit/774d6f42270d5498b856765755f7a29b372d08c5))
+
 ## [1.0.3](https://github.com/nguyenvanduocit/rag-kit/compare/v1.0.2...v1.0.3) (2026-03-13)
 
 
