@@ -1,5 +1,13 @@
 # Changelog
 
+## [1.0.1](https://github.com/nguyenvanduocit/rag-kit/compare/v1.0.0...v1.0.1) (2026-03-13)
+
+
+### Bug Fixes
+
+* add --repo flag to gh pr merge to fix auto-merge ([d2ff4d5](https://github.com/nguyenvanduocit/rag-kit/commit/d2ff4d5e72adbae5804046d997ee381aaf156360))
+* add concurrency control to prevent release race conditions ([2579efb](https://github.com/nguyenvanduocit/rag-kit/commit/2579efbbf31912194f32c499a541c254eb4cdb07))
+
 ## 1.0.0 (2026-03-13)
 
 
