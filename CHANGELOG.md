@@ -1,5 +1,12 @@
 # Changelog
 
+## [1.0.2](https://github.com/nguyenvanduocit/rag-kit/compare/v1.0.1...v1.0.2) (2026-03-13)
+
+
+### Bug Fixes
+
+* use merge instead of squash to preserve commit SHAs for release-please ([e7b1fbf](https://github.com/nguyenvanduocit/rag-kit/commit/e7b1fbf89b632af6c25bed26ca99d960d1229c41))
+
 ## [1.0.1](https://github.com/nguyenvanduocit/rag-kit/compare/v1.0.0...v1.0.1) (2026-03-13)
 
 
